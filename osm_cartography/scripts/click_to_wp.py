@@ -54,7 +54,7 @@ from geodesy import bounding_box
 
 from geographic_msgs.msg import GeoPoint
 from geographic_msgs.srv import GetGeographicMap
-from geometry_msgs.msg import PointStamped, Point
+from geographic_msgs.msg import RouteNetwork
 
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
@@ -62,13 +62,12 @@ from visualization_msgs.msg import MarkerArray
 
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import PointStamped, Point
+
+from geographic_msgs.srv import GetRoutePlan, GetRoutePlanRequest
 
 import tf
 import numpy as np
-
-# dynamic parameter reconfiguration
-from dynamic_reconfigure.server import Server as ReconfigureServer
-import osm_cartography.cfg.VizOSMConfig as Config
 
 
 class ClickNode():
@@ -85,9 +84,15 @@ class ClickNode():
         self.get_map = rospy.ServiceProxy('get_geographic_map',
                                           GetGeographicMap)
 
+        rospy.wait_for_service('get_route_plan')
+        self.get_plan = rospy.ServiceProxy('get_route_plan', GetRoutePlan)
         self.sub = rospy.Subscriber('/clicked_point',
                                     PointStamped,
                                     self.click_cb)
+
+        self.routenet_sub = rospy.Subscriber('/route_network',
+                                    RouteNetwork,
+                                    self.routenet_cb)
 
         self.listener = tf.TransformListener()
 
@@ -112,16 +117,45 @@ class ClickNode():
         self.timer_interval = rospy.Duration(1)
         rospy.Timer(self.timer_interval, self.pub_marker)
 
+        self.route = None
+
     def click_cb(self, msg):
         # rospy.loginfo('I heard a click: {}'.format(msg))
         wp = self.find_closest_wp(msg)
         self.mark_wp(wp)
 
+        if not self.route:
+            self.route = [wp]
+        elif len(self.route) == 1:
+            self.route.append(wp)
+            self.request_route()
+            self.route = None
+        else:
+            raise ValueError('This is wrong')
+
+    def routenet_cb(self, msg):
+        self.graph = msg
+        self.route_points = geodesy.wu_point.WuPointSet(self.graph.points)
+
+    def request_route(self):
+        s_uwp, g_uwp = self.route
+        try:
+            resp = self.get_plan(self.graph.id, s_uwp.toWayPoint().id, g_uwp.toWayPoint().id)
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed: " + str(e))
+        else:                           # get_map returned
+            if resp.success:
+                rospy.loginfo('received a route' + str(resp.status))
+                pass
+                # self.mark_plan(resp.plan)
+            else:
+                rospy.logerr('get_route_plan failed, status: ' + str(resp.status))
+
     def find_closest_wp(self, msg):
         map_point = self.listener.transformPoint('/map', msg)
-        all_points = np.zeros((len(self.map_points), 2))
+        all_points = np.zeros((len(self.route_points), 2))
         point_ids = []
-        for i, wp in enumerate(self.map_points):
+        for i, wp in enumerate(self.route_points):
             pt = wp.utm.toPoint()
             all_points[i] = [pt.x, pt.y]
             point_ids.append(wp.uuid())
