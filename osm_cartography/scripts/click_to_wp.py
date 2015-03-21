@@ -56,6 +56,13 @@ from geographic_msgs.msg import GeoPoint
 from geographic_msgs.srv import GetGeographicMap
 from geometry_msgs.msg import PointStamped, Point
 
+from std_msgs.msg import ColorRGBA
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
+
+from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import Vector3
+
 import tf
 import numpy as np
 
@@ -84,6 +91,10 @@ class ClickNode():
 
         self.listener = tf.TransformListener()
 
+        # advertise visualization marker topic
+        self.pub = rospy.Publisher('visualization_marker',
+                                   Marker, queue_size=10)
+
         try:
             resp = self.get_map('', None)
         except rospy.ServiceException as e:
@@ -96,9 +107,16 @@ class ClickNode():
             else:
                 print('get_geographic_map failed, status:', str(resp.status))
 
+        self.marker = None
+
+        self.timer_interval = rospy.Duration(1)
+        rospy.Timer(self.timer_interval, self.pub_marker)
+
     def click_cb(self, msg):
-        rospy.loginfo('I heard a click: {}'.format(msg))
-        
+        # rospy.loginfo('I heard a click: {}'.format(msg))
+        wp = self.find_closest_wp(msg)
+        self.mark_wp(wp)
+
     def find_closest_wp(self, msg):
         map_point = self.listener.transformPoint('/map', msg)
         all_points = np.zeros((len(self.map_points), 2))
@@ -108,9 +126,32 @@ class ClickNode():
             all_points[i] = [pt.x, pt.y]
             point_ids.append(wp.uuid())
 
-        dists = np.linalg.norm(all_points - np.array([map_point.point.x, map_point.point.y]))
+        dists = np.linalg.norm(all_points - np.array([map_point.point.x, map_point.point.y]), axis=1)
         wp = self.map_points[point_ids[np.argmin(dists)]]
+        print(wp)
         return wp
+
+    def mark_wp(self, wp):
+        color = ColorRGBA(r=0.1, g=1.0, b=0.1, a=0.8)
+        marker = Marker(  # header=self.gmap.header,
+            ns="marked_wp",
+            id=500000,
+            type=Marker.CUBE,
+            action=Marker.ADD,
+            scale=Vector3(x=41, y=41, z=41),
+            color=color,
+            lifetime=rospy.Duration(10))
+        # use easting and northing coordinates (ignoring altitude)
+        marker.pose.position = wp.toPointXY()
+        marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
+        marker.header.frame_id = '/map'
+        marker.header.stamp = rospy.Time.now()
+
+        self.marker = marker
+
+    def pub_marker(self, event):
+        if self.marker:
+            self.pub.publish(self.marker)
 
 
 def main():
