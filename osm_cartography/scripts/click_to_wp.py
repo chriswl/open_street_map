@@ -53,8 +53,8 @@ import geodesy.wu_point
 from geodesy import bounding_box
 
 from geographic_msgs.msg import GeoPoint
+from geographic_msgs.msg import RouteNetwork, RoutePath
 from geographic_msgs.srv import GetGeographicMap
-from geographic_msgs.msg import RouteNetwork
 
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
@@ -99,6 +99,8 @@ class ClickNode():
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker',
                                    Marker, queue_size=10)
+        self.route_pub = rospy.Publisher('route_plan',
+                                   RoutePath, queue_size=10)
 
         try:
             resp = self.get_map('', None)
@@ -146,8 +148,7 @@ class ClickNode():
         else:                           # get_map returned
             if resp.success:
                 rospy.loginfo('received a route' + str(resp.status))
-                pass
-                # self.mark_plan(resp.plan)
+                self.route_pub.publish(resp.plan)
             else:
                 rospy.logerr('get_route_plan failed, status: ' + str(resp.status))
 
