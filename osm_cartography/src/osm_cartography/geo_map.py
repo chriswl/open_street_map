@@ -49,11 +49,13 @@ Class for manipulating GeographicMap data.
 """
 
 PKG = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG)
+import roslib
+roslib.load_manifest(PKG)
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
 from geometry_msgs.msg import Point
+
 
 class GeoMap():
     """
@@ -90,6 +92,7 @@ class GeoMap():
         """
         return self.gmap.header
 
+
 class GeoMapFeatures():
     """
     :class:`GeoMapFeatures` provides a filtering iterator for the
@@ -104,20 +107,20 @@ class GeoMapFeatures():
        :returns: The number of points in the set.
 
     .. describe:: features[uuid]
- 
+
        :returns: The point with key *uuid*.  Raises a :exc:`KeyError`
                  if *uuid* is not in the set.
- 
+
     .. describe:: uuid in features
- 
+
        :returns: ``True`` if *features* has a key *uuid*, else ``False``.
- 
+
     .. describe:: uuid not in features
- 
+
        Equivalent to ``not uuid in features``.
- 
+
     .. describe:: iter(features)
- 
+
        :returns: An iterator over all the features.  This is a
                  shortcut for :meth:`iterkeys`.
 

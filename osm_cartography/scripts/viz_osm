@@ -202,7 +202,7 @@ class VizNode():
             marker.pose.position = wp.toPointXY()
             marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.msg.markers.append(marker)
-    
+
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
 

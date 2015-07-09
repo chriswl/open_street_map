@@ -48,7 +48,8 @@ from __future__ import print_function
 from xml.etree import ElementTree
 
 PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
+import roslib
+roslib.load_manifest(PKG_NAME)
 
 import unique_id
 from geodesy import bounding_box
@@ -63,6 +64,7 @@ try:
 except ImportError:
     from uuid_msgs.msg import UniqueID
 
+
 def get_required_attribute(el, key):
     """ Get attribute key of element *el*.
 
@@ -72,6 +74,7 @@ def get_required_attribute(el, key):
     if val == None:
         raise ValueError('required attribute missing: ' + key)
     return val
+
 
 def makeOsmUniqueID(namespace, el_id):
     """Make UniqueID message for *el_id* number in OSM sub-namespace *namespace*.
@@ -89,6 +92,7 @@ def makeOsmUniqueID(namespace, el_id):
     ns = 'http://openstreetmap.org/' + namespace + '/'
     return unique_id.toMsg(unique_id.fromURL(ns + str(el_id)))
 
+
 def get_tag(el):
     """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
     pair = None
@@ -98,7 +102,8 @@ def get_tag(el):
         pair.key = key
         pair.value = get_required_attribute(el, 'v')
         return pair
-    
+
+
 def get_osm(url, bounds):
     """Get `geographic_msgs/GeographicMap`_ from Open Street Map XML data.
 
@@ -120,7 +125,7 @@ def get_osm(url, bounds):
     else:
         raise ValueError('unsupported URL: ' + url)
 
-    gmap = GeographicMap(id = unique_id.toMsg(unique_id.fromURL(url)))
+    gmap = GeographicMap(id=unique_id.toMsg(unique_id.fromURL(url)))
     xm = None
     try:
         f = open(filename, 'r')
