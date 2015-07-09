@@ -71,7 +71,7 @@ def get_required_attribute(el, key):
     :raises:  :exc:`ValueError` if key not found
     """
     val = el.get(key)
-    if val == None:
+    if val is None:
         raise ValueError('required attribute missing: ' + key)
     return val
 
@@ -87,7 +87,7 @@ def makeOsmUniqueID(namespace, el_id):
     :returns: corresponding `geographic_msgs/UniqueID`_ message.
     :raises:  :exc:`ValueError`
     """
-    if not namespace in set(['node', 'way', 'relation']):
+    if namespace not in set(['node', 'way', 'relation']):
         raise ValueError('invalid OSM namespace: ' + namespace)
     ns = 'http://openstreetmap.org/' + namespace + '/'
     return unique_id.toMsg(unique_id.fromURL(ns + str(el_id)))
@@ -97,7 +97,7 @@ def get_tag(el):
     """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
     pair = None
     key = el.get('k')
-    if key != None:
+    if key is not None:
         pair = KeyValue()
         pair.key = key
         pair.value = get_required_attribute(el, 'v')
@@ -159,7 +159,7 @@ def get_osm(url, bounds):
 
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
-            if kv != None:
+            if kv is not None:
                 way.props.append(kv)
 
         gmap.points.append(way)
@@ -179,7 +179,7 @@ def get_osm(url, bounds):
 
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
-            if kv != None:
+            if kv is not None:
                 feature.props.append(kv)
 
         gmap.features.append(feature)
@@ -203,7 +203,7 @@ def get_osm(url, bounds):
 
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
-            if kv != None:
+            if kv is not None:
                 feature.props.append(kv)
 
         gmap.features.append(feature)
