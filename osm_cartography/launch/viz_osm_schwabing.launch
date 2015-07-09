@@ -7,7 +7,7 @@
 
 <launch>
 
-  <arg name="url" default="package://osm_cartography/tests/schwabing.osm" />
+  <arg name="url" default="file:///home/landsiedel/data/osmaps/schwabing_big.osm" />
 
   <!-- Transform /map into /local_map frame. Rviz cannot handle large
        UTM coordinates, they require double precision, so we visualize
