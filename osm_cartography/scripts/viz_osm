@@ -69,7 +69,6 @@ import osm_cartography.cfg.VizOSMConfig as Config
 
 
 class VizNode():
-
     def __init__(self):
         """ROS node to publish visualization markers for a GeographicMap.
         """
@@ -77,13 +76,12 @@ class VizNode():
         self.config = None
 
         # advertise visualization marker topic
-        self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True)
+        self.pub = rospy.Publisher('visualization_marker_array', MarkerArray, latch=True)
         self.map = None
         self.msg = None
+        self.hilite_ids = set()
         rospy.wait_for_service('get_geographic_map')
-        self.get_map = rospy.ServiceProxy('get_geographic_map',
-                                          GetGeographicMap)
+        self.get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
 
         # refresh the markers every three seconds, making them last four.
         self.timer_interval = rospy.Duration(3)
@@ -255,27 +253,58 @@ class VizNode():
     def hilite_by_id(self, uuid):
         # try waypoint:
         rospy.logwarn('highlighting {}'.format(unicode(uuid)))
-        p = self.map_points.get(uuid)
-        if p:
-            index = 1
-            marker = Marker(header=self.map.header,
-                            ns="hl_waypoints_osm",
-                            id=index,
-                            type=Marker.CYLINDER,
-                            action=Marker.ADD,
-                            scale=Vector3(x=2., y=2., z=0.2),
-                            color=ColorRGBA(1, 1, 1, 1),
-                            lifetime=self.marker_life)
-            marker.pose.position = p.toPointXY()
-            marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
-            self.msg.markers.append(marker)
-            return
+        self.hilite_ids.add(uuid)
 
-        self.mark_features(lambda x: x.id == uuid,
-                ColorRGBA(1., 1., 1., 1.),
-                'hilites_osm', index=-1)
+        self.add_hilite_markers()
+
+    def add_hilite_markers(self):
+        for uuid in self.hilite_ids:
+            p = self.map_points.get(uuid)
+            if p:
+                index = 1
+                marker = Marker(header=self.map.header,
+                                ns="hl_waypoints_osm",
+                                id=index,
+                                type=Marker.CYLINDER,
+                                action=Marker.ADD,
+                                scale=Vector3(x=2., y=2., z=0.2),
+                                color=ColorRGBA(1, 1, 1, 1),
+                                lifetime=self.marker_life)
+                marker.pose.position = p.toPointXY()
+                marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
+                self.msg.markers.append(marker)
+                return
+
+        eligible_feat = set()
+        for uuid in self.hilite_ids:
+            eligible_feat.add((f for f in self.map.features if f.id == uuid).next())
+
+        index = 0
+        color = ColorRGBA(1., 1., 1., 1.)
+        namespace = 'hilites_osm'
+        for feature in eligible_feat:
+            marker = Marker(header=self.map.header,
+                            ns=namespace,
+                            id=index,
+                            type=Marker.LINE_STRIP,
+                            action=Marker.ADD,
+                            scale=Vector3(x=2.),
+                            color=color,
+                            lifetime=self.marker_life)
+            index += 1
+            prev_point = None
+            for mbr in feature.components:
+                wu_point = self.map_points.get(mbr.uuid)
+                if wu_point:    # this component is a way point
+                    p = wu_point.toPointXY()
+                    if prev_point:
+                        marker.points.append(prev_point)
+                        marker.points.append(p)
+                    prev_point = p
+            self.msg.markers.append(marker)
 
     def reset_viz(self, msg):
+        self.hilite_ids = set()
         self.get_markers(self.map)
 
 
