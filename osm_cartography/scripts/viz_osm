@@ -238,7 +238,7 @@ class VizNode():
                 # publish visualization markers (on a latched topic)
                 self.pub.publish(self.msg)
             else:
-                print('get_geographic_map failed, status:', str(resp.status))
+                rospy.logwarn('get_geographic_map failed, status:', str(resp.status))
 
         return self.config
 
@@ -252,7 +252,6 @@ class VizNode():
 
     def hilite_by_id(self, uuid):
         # try waypoint:
-        rospy.logwarn('highlighting {}'.format(unicode(uuid)))
         self.hilite_ids.add(uuid)
 
         self.add_hilite_markers()
