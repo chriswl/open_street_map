@@ -98,26 +98,27 @@ class VizNode():
 
         :post: self.msg = visualization markers message
         """
+        def_a = 0.5
         self.map = gmap
         self.map_points = geodesy.wu_point.WuPointSet(gmap.points)
         self.msg = MarkerArray()
-        self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
-        self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
+        self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=def_a))
+        self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=def_a))
 
         # define arguments for displaying various feature types
         road_props = set(['bridge', 'highway', 'tunnel'])
         pedestrian_props = set('cycleway footway path pedestrian'.split())
         fargs = [(lambda(f): geodesy.props.match(f, road_props),
-                  ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
+                  ColorRGBA(r=8., g=0.2, b=0.2, a=def_a),
                   "roads_osm"),
                  (lambda(f): geodesy.props.match(f, pedestrian_props),
-                  ColorRGBA(r=8., g=0.2, b=0.9, a=0.8),
+                  ColorRGBA(r=8., g=0.2, b=0.9, a=def_a),
                   "pedestrian_osm"),
                  (lambda(f): geodesy.props.match(f, set(['building'])),
-                  ColorRGBA(r=0., g=0.3, b=0.7, a=0.8),
+                  ColorRGBA(r=0., g=0.3, b=0.7, a=def_a),
                   "buildings_osm"),
                  (lambda(f): geodesy.props.match(f, set(['railway'])),
-                  ColorRGBA(r=0., g=0.7, b=.7, a=0.8),
+                  ColorRGBA(r=0., g=0.7, b=.7, a=def_a),
                   "railroad_osm"),
                  (lambda(f): geodesy.props.match(f, set(['amenity',
                                                          'landuse'])),
