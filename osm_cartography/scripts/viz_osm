@@ -258,10 +258,10 @@ class VizNode():
         self.add_hilite_markers()
 
     def add_hilite_markers(self):
-        for uuid in self.hilite_ids:
-            p = self.map_points.get(uuid)
+        index = 0
+        for uid in self.hilite_ids:
+            p = self.map_points.get(uid.uuid)
             if p:
-                index = 1
                 marker = Marker(header=self.map.header,
                                 ns="hl_waypoints_osm",
                                 id=index,
@@ -273,11 +273,14 @@ class VizNode():
                 marker.pose.position = p.toPointXY()
                 marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
                 self.msg.markers.append(marker)
-                return
+                index += 1
 
         eligible_feat = set()
-        for uuid in self.hilite_ids:
-            eligible_feat.add((f for f in self.map.features if f.id == uuid).next())
+        for uid in self.hilite_ids:
+            try:
+                eligible_feat.add((f for f in self.map.features if f.id == uid).next())
+            except StopIteration:
+                pass
 
         index = 0
         color = ColorRGBA(1., 1., 1., 1.)
