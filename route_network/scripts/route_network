@@ -38,7 +38,8 @@ Create route network messages for geographic information maps.
 """
 
 PKG_NAME = 'route_network'
-import roslib; roslib.load_manifest(PKG_NAME)
+import roslib
+roslib.load_manifest(PKG_NAME)
 import rospy
 
 import sys
@@ -63,11 +64,13 @@ except ImportError:
 from dynamic_reconfigure.server import Server as ReconfigureServer
 import route_network.cfg.RouteNetworkConfig as Config
 
+
 def is_oneway(feature):
     """ One-way route predicate.
     :returns: True if feature is one way.
     """
     return geodesy.props.match(feature, set(['oneway']))
+
 
 def is_route(feature):
     """ Drivable feature predicate.
@@ -79,6 +82,7 @@ def is_route(feature):
 # URL, unique to this package
 PKG_URL = 'http://ros.org/wiki/' + PKG_NAME
 
+
 def makeGraph(msg):
     """ Make RouteNetwork message.
 
@@ -86,7 +90,8 @@ def makeGraph(msg):
     :returns: RouteNetwork message.
     """
     uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/map/' + str(msg.id.uuid) + '/routes'))
-    return RouteNetwork(header = msg.header, id = uu, bounds = msg.bounds)
+    return RouteNetwork(header=msg.header, id=uu, bounds=msg.bounds)
+
 
 def makeSeg(start, end, oneway=False):
     """ Make RouteSegment message.
@@ -98,10 +103,11 @@ def makeSeg(start, end, oneway=False):
     """
     uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/' + str(start) + '/' + str(end)))
 
-    seg = RouteSegment(id = uu, start = start, end = end)
+    seg = RouteSegment(id=uu, start=start, end=end)
     if oneway:
-        seg.props.append(KeyValue(key = 'oneway', value = 'yes'))
+        seg.props.append(KeyValue(key='oneway', value='yes'))
     return seg
+
 
 class RouteNetNode():
 
@@ -139,13 +145,13 @@ class RouteNetNode():
                 pt = self.map_points.get(mbr.uuid)
                 if pt is not None:      # known way point?
                     self.graph.points.append(pt.toWayPoint())
-                    end = UniqueID(uuid = mbr.uuid)
+                    end = UniqueID(uuid=mbr.uuid)
                     if start is not None:
                         self.graph.segments.append(makeSeg(start, end, oneway))
                         if not oneway:
                             self.graph.segments.append(makeSeg(end, start))
                     start = end
-    
+
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
 
@@ -175,12 +181,14 @@ class RouteNetNode():
                              + str(resp.status))
 
         return self.config
-    
+
+
 def main():
     node_class = RouteNetNode()
     try:
         rospy.spin()
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException:
+        pass
 
 if __name__ == '__main__':
     # run main function and exit
