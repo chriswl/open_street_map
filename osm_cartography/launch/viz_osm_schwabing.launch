@@ -7,7 +7,7 @@
 
 <launch>
 
-  <arg name="url" default="file:///home/landsiedel/data/osmaps/schwabing_big.osm" />
+  <arg name="url" default="file:///home/landsiedel/data/osmaps/maxvorstadt_cropped.osm" />
 
   <!-- Transform /map into /local_map frame. Rviz cannot handle large
        UTM coordinates, they require double precision, so we visualize
@@ -21,7 +21,7 @@
   <node pkg="osm_cartography" type="osm_server" name="osm_server" />
 
   <!-- start map visualization -->
-  <node pkg="osm_cartography" type="viz_osm" name="viz_osm" >
+  <node pkg="osm_cartography" type="viz_osm" name="viz_osm" output="screen">
     <param name="map_url" value="$(arg url)" />
   </node>
 
