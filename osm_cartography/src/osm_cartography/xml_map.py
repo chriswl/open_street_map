@@ -146,7 +146,6 @@ def get_osm(url, bounds):
 
     # get map way-point nodes
     for el in osm.iterfind('node'):
-
         way = WayPoint()
         el_id = el.get('id')
         if el_id is None:
@@ -166,7 +165,6 @@ def get_osm(url, bounds):
 
     # get map paths
     for el in osm.iterfind('way'):
-
         feature = MapFeature()
         el_id = el.get('id')
         if el_id is None:
@@ -186,7 +184,6 @@ def get_osm(url, bounds):
 
     # get relations
     for el in osm.iterfind('relation'):
-
         feature = MapFeature()
         el_id = el.get('id')
         if el_id is None:
@@ -233,14 +230,14 @@ interesting_tags = set(['access',
                         'street',
                         'tunnel',
                         'type',
+                        'cycleway',
+                        'footway',
+                        'path',
+                        'pedestrian',
                         'width'])
 
 
 ignored_values = set(['bridleway',
                       'construction',
-                      'cycleway',
-                      'footway',
-                      'path',
-                      'pedestrian',
                       'proposed',
                       'steps'])
